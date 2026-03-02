@@ -36,6 +36,8 @@ public class PaymentProcessingService {
         String reason = success ? null : "Randomized failure, draw=" + draw;
 
         PaymentEvent event = new PaymentEvent(
+                order.item().productId(),
+                order.item().quantity(),
                 amount,
                 currency,
                 eventType,
