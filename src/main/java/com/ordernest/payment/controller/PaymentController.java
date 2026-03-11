@@ -1,6 +1,9 @@
 package com.ordernest.payment.controller;
 
 import com.ordernest.payment.dto.ProcessPaymentRequest;
+import com.ordernest.payment.dto.RazorpayCreateOrderResponse;
+import com.ordernest.payment.dto.RazorpayVerifyPaymentRequest;
+import com.ordernest.payment.dto.RazorpayVerifyPaymentResponse;
 import com.ordernest.payment.service.PaymentProcessingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +21,20 @@ public class PaymentController {
 
     private final PaymentProcessingService paymentProcessingService;
 
-    @PostMapping("/process")
-    public ResponseEntity<Void> processPayment(
+    @PostMapping("/create-order")
+    public ResponseEntity<RazorpayCreateOrderResponse> createOrder(
             @Valid @RequestBody ProcessPaymentRequest request,
             @RequestHeader(value = "Authorization", required = false) String authorization
     ) {
-        paymentProcessingService.process(request, authorization);
-        return ResponseEntity.ok().build();
+        RazorpayCreateOrderResponse response = paymentProcessingService.createRazorpayOrder(request, authorization);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<RazorpayVerifyPaymentResponse> verifyPayment(
+            @Valid @RequestBody RazorpayVerifyPaymentRequest request
+    ) {
+        RazorpayVerifyPaymentResponse response = paymentProcessingService.verifyPayment(request);
+        return ResponseEntity.ok(response);
     }
 }
