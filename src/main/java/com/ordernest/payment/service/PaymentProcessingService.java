@@ -187,7 +187,7 @@ public class PaymentProcessingService {
         }
     }
 
-    private void publishSuccessEvent(PendingPaymentAttempt attempt, String paymentId) {
+    private void publishSuccessEvent(PendingPaymentAttempt attempt, String razorpayPaymentId) {
         paymentEventPublisher.publish(new PaymentEvent(
                 attempt.productId(),
                 attempt.quantity(),
@@ -195,13 +195,13 @@ public class PaymentProcessingService {
                 attempt.currency(),
                 PaymentEventType.PAYMENT_SUCCESS,
                 attempt.internalOrderId(),
-                paymentId,
+                razorpayPaymentId,
                 null,
                 Instant.now()
         ));
     }
 
-    private void publishFailureEvent(PendingPaymentAttempt attempt, String paymentId, String reason) {
+    private void publishFailureEvent(PendingPaymentAttempt attempt, String razorpayPaymentId, String reason) {
         paymentEventPublisher.publish(new PaymentEvent(
                 attempt.productId(),
                 attempt.quantity(),
@@ -209,7 +209,7 @@ public class PaymentProcessingService {
                 attempt.currency(),
                 PaymentEventType.PAYMENT_FAILED,
                 attempt.internalOrderId(),
-                paymentId,
+                razorpayPaymentId,
                 reason,
                 Instant.now()
         ));
