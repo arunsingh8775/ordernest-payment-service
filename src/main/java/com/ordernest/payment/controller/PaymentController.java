@@ -6,6 +6,7 @@ import com.ordernest.payment.dto.RazorpayVerifyPaymentRequest;
 import com.ordernest.payment.dto.RazorpayVerifyPaymentResponse;
 import com.ordernest.payment.service.PaymentProcessingService;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,5 +37,14 @@ public class PaymentController {
     ) {
         RazorpayVerifyPaymentResponse response = paymentProcessingService.verifyPayment(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/webhooks/razorpay/refund")
+    public ResponseEntity<Map<String, String>> handleRefundWebhook(
+            @RequestHeader(value = "X-Razorpay-Signature", required = false) String signature,
+            @RequestBody String payload
+    ) {
+        paymentProcessingService.processRefundWebhook(payload, signature);
+        return ResponseEntity.ok(Map.of("status", "acknowledged"));
     }
 }

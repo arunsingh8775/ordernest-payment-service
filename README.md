@@ -50,9 +50,19 @@ Behavior:
   - `PAYMENT_SUCCESS` if signature is valid
   - `PAYMENT_FAILED` if signature is invalid/mismatched
 
+### 3) Razorpay refund webhook
+- `POST /api/payments/webhooks/razorpay/refund`
+- Header: `X-Razorpay-Signature`
+
+Behavior:
+- Verifies webhook signature using webhook secret.
+- Processes `refund.processed` callbacks.
+- Publishes Kafka event:
+  - `PAYMENT_REFUNDED` when refund is confirmed by Razorpay.
+
 ## Kafka Event
 Published event payload (`PaymentEvent`):
-- `eventType` (`PAYMENT_SUCCESS` / `PAYMENT_FAILED`)
+- `eventType` (`PAYMENT_SUCCESS` / `PAYMENT_FAILED` / `PAYMENT_REFUNDED`)
 - `orderId`
 - `paymentId`
 - `amount`
@@ -64,3 +74,4 @@ Published event payload (`PaymentEvent`):
 - `JWT_SECRET` (must match auth/order services)
 - `RAZORPAY_KEY_ID` (test key id, `rzp_test_*`)
 - `RAZORPAY_KEY_SECRET` (test secret)
+- `RAZORPAY_WEBHOOK_SECRET` (secret configured in Razorpay webhook settings)
