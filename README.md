@@ -28,7 +28,7 @@ Response:
 Behavior:
 - Fetches order details from order service.
 - Creates a Razorpay order on `/v1/orders`.
-- Stores a short-lived pending payment attempt in memory for later verification.
+- Stores a short-lived pending payment attempt in Redis for later verification.
 
 ### 2) Verify Razorpay payment signature
 - `POST /api/payments/verify`
@@ -46,6 +46,7 @@ Request:
 Behavior:
 - Validates that the submitted Razorpay order matches pending server state.
 - Verifies signature using HMAC-SHA256 (`order_id|payment_id`) with Razorpay secret.
+- Persists payment outcome in the `payment_records` database table for restart-safe refund processing.
 - Publishes Kafka event:
   - `PAYMENT_SUCCESS` if signature is valid
   - `PAYMENT_FAILED` if signature is invalid/mismatched
@@ -57,6 +58,7 @@ Behavior:
 Behavior:
 - Verifies webhook signature using webhook secret.
 - Processes `refund.processed` callbacks.
+- Resolves refund state from the persisted payment record and marks it refunded in the database.
 - Publishes Kafka event:
   - `PAYMENT_REFUNDED` when refund is confirmed by Razorpay.
 
@@ -71,6 +73,13 @@ Published event payload (`PaymentEvent`):
 - `reason` (only for failures)
 
 ## Environment Variables
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `REDIS_HOST`
+- `REDIS_PORT`
+- `REDIS_PASSWORD`
+- `PAYMENT_PENDING_ATTEMPT_TTL_SECONDS` (defaults to `3600`)
 - `JWT_SECRET` (must match auth/order services)
 - `RAZORPAY_KEY_ID` (test key id, `rzp_test_*`)
 - `RAZORPAY_KEY_SECRET` (test secret)
