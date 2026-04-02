@@ -52,8 +52,6 @@ app:
       order-cancelled-events: order.cancelled.events
     consumer:
       order-cancelled-group-id: ordernest-payment-service-order-cancel-consumer
-  jwt:
-    secret: change-me-in-prod-change-me-in-prod-change-me
   payment:
     pending-attempt-ttl-seconds: 3600
   razorpay:
