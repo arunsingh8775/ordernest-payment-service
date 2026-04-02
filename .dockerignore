@@ -1,0 +1,14 @@
+.git
+.github
+.gradle
+.idea
+build
+out
+etc/secrets/config.properties
+*.iml
+*.log
+config/*.pem
+config/*.key
+config/*.cert
+config/*.p12
+config/*.jks
