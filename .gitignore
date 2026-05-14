@@ -23,3 +23,7 @@ config/*.key
 config/*.cert
 config/*.p12
 config/*.jks
+
+# Local secrets
+etc/secrets/config.properties
+src/main/resources/application-prod.yml
