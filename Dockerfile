@@ -20,8 +20,8 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 COPY --from=builder /app/src/main/resources/ca.pem /app/ssl/ca.pem
 COPY --from=builder /app/src/main/resources/client.keystore.p12 /app/ssl/client.keystore.p12
 
-ENV SPRING_PROFILES_ACTIVE=production
+ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_OPTS="-XX:+UseSerialGC -XX:TieredStopAtLevel=1"
 EXPOSE 8080
 
-CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar --server.port=${PORT:-8080}"]
+CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.profiles.active=${SPRING_PROFILES_ACTIVE} --server.port=${PORT:-8080}"]

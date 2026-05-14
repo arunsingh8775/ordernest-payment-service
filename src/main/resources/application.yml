@@ -2,14 +2,13 @@ server:
   port: 8083
 
 spring:
+  profiles:
+    default: local
   config:
-    import: optional:file:./etc/secrets/config.properties,optional:file:/etc/secrets/config.properties
+    import: optional:file:/etc/secrets/application-prod.yml
   application:
     name: ordernest-payment-service
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/payment_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -20,14 +19,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
-      url: ${REDIS_URL:}
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      username: ${REDIS_USERNAME:}
-      password: ${REDIS_PASSWORD:}
       timeout: 5s
   kafka:
-    bootstrap-servers: ${KAFKA_SERVICE_URL:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -43,29 +36,16 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     properties:
       security:
-        protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
-      ssl:
-        truststore:
-          type: PEM
-          location: ${KAFKA_TRUSTSTORE_PATH:${user.dir}/src/main/resources/ca.pem}
-        keystore:
-          type: PKCS12
-          location: ${KAFKA_KEYSTORE_PATH:${user.dir}/src/main/resources/client.keystore.p12}
-          password: ${KAFKA_KEYSTORE_PASSWORD:changeit}
+        protocol: SSL
 
 app:
-  order:
-    base-url: ${ORDER_API_BASE_URL:http://localhost:8082}
   kafka:
     topic:
-      payment-events: ${PAYMENT_EVENTS_TOPIC:payment.events}
+      payment-events: payment.events
   payment:
-    pending-attempt-ttl-seconds: ${PAYMENT_PENDING_ATTEMPT_TTL_SECONDS:3600}
+    pending-attempt-ttl-seconds: 3600
   razorpay:
-    base-url: ${RAZORPAY_BASE_URL:https://api.razorpay.com}
-    key-id: ${RAZORPAY_KEY_ID:}
-    key-secret: ${RAZORPAY_KEY_SECRET:}
-    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:}
+    base-url: https://api.razorpay.com
 
 management:
   endpoints:

@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/payment_db
+    username: postgres
+    password: postgres
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      username: ""
+      password: ""
+  kafka:
+    bootstrap-servers: localhost:9092
+    properties:
+      security:
+        protocol: PLAINTEXT
+      ssl:
+        truststore:
+          type: PEM
+          location: ${user.dir}/src/main/resources/ca.pem
+        keystore:
+          type: PKCS12
+          location: ${user.dir}/src/main/resources/client.keystore.p12
+          password: changeit
+
+app:
+  order:
+    base-url: http://localhost:8082
+  razorpay:
+    key-id: ""
+    key-secret: ""
+    webhook-secret: ""
