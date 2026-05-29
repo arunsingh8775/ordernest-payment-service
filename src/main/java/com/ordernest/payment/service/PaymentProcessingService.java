@@ -169,7 +169,7 @@ public class PaymentProcessingService {
         if (cancellationEvent == null
                 || cancellationEvent.orderId() == null
                 || cancellationEvent.eventType() == null
-                || cancellationEvent.eventType() != OrderCancellationEventType.CANCALLED) {
+                || cancellationEvent.eventType() != OrderCancellationEventType.CANCELLED) {
             return;
         }
 

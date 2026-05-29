@@ -42,6 +42,9 @@ app:
   kafka:
     topic:
       payment-events: payment.events
+      order-status-events: order.status.events
+    consumer:
+      order-status-group-id: ordernest-payment-service-order-status-consumer
   payment:
     pending-attempt-ttl-seconds: 3600
   razorpay:
