@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestClient;
 
 @Service
@@ -188,11 +189,17 @@ public class PaymentProcessingService {
 
         try {
             RazorpayRefundResponse refundResponse =
-                    createRazorpayRefund(paymentRecord.getRazorpayPaymentId(), paymentRecord.getOrderId().toString());
+                    createRazorpayRefund(paymentRecord);
             paymentRecord.setRefundId(refundResponse.id());
             paymentRecord.setStatus(PaymentRecordStatus.REFUND_INITIATED);
             paymentRecord.setRefundInitiatedAt(Instant.now());
             paymentRecord.setFailureReason(null);
+            paymentRecordRepository.save(paymentRecord);
+        } catch (RestClientResponseException ex) {
+            String responseBody = ex.getResponseBodyAsString();
+            log.error("Razorpay refund request failed for orderId={}, paymentId={}, status={}, response={}",
+                    paymentRecord.getOrderId(), paymentRecord.getRazorpayPaymentId(), ex.getStatusCode(), responseBody);
+            paymentRecord.setFailureReason(truncate("Refund initiation failed: " + responseBody, 512));
             paymentRecordRepository.save(paymentRecord);
         } catch (Exception ex) {
             throw ex;
@@ -303,18 +310,22 @@ public class PaymentProcessingService {
         return response;
     }
 
-    private RazorpayRefundResponse createRazorpayRefund(String razorpayPaymentId, String internalOrderId) {
+    private RazorpayRefundResponse createRazorpayRefund(PaymentRecord paymentRecord) {
         validateRazorpayConfiguration();
 
         String basicAuth = Base64.getEncoder()
                 .encodeToString((razorpayKeyId + ":" + razorpayKeySecret).getBytes(StandardCharsets.UTF_8));
 
+        String internalOrderId = paymentRecord.getOrderId().toString();
         Map<String, Object> body = Map.of(
+                "amount", toSubunits(paymentRecord.getAmount()),
+                "speed", "normal",
+                "receipt", "refund_" + internalOrderId,
                 "notes", Map.of("internal_order_id", internalOrderId)
         );
 
         RazorpayRefundResponse response = razorpayClient.post()
-                .uri("/v1/payments/{paymentId}/refund", razorpayPaymentId)
+                .uri("/v1/payments/{paymentId}/refund", paymentRecord.getRazorpayPaymentId())
                 .header("Authorization", "Basic " + basicAuth)
                 .body(body)
                 .retrieve()
@@ -325,7 +336,7 @@ public class PaymentProcessingService {
         }
 
         log.info("Refund initiated for orderId={}, paymentId={}, refundId={}, status={}",
-                internalOrderId, razorpayPaymentId, response.id(), response.status());
+                internalOrderId, paymentRecord.getRazorpayPaymentId(), response.id(), response.status());
 
         return response;
     }
@@ -446,6 +457,13 @@ public class PaymentProcessingService {
         }
         String value = node.asText();
         return value == null || value.isBlank() ? null : value;
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     private PendingPaymentAttempt toPendingAttempt(PendingPaymentAttemptCacheEntry cacheEntry) {
